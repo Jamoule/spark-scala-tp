@@ -1,0 +1,7 @@
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:15:9: df is already defined as value df[0m
+[0m[[0m[31merror[0m] [0m[0m    val df = readCsv(spark, "data/transactions_data.csv", 10)[0m
+[0m[[0m[31merror[0m] [0m[0m        ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:14:52: value option is not a member of org.apache.spark.sql.DataFrame[0m
+[0m[[0m[31merror[0m] [0m[0m    val df = spark.read.csv("data/cards_data.csv").option("header", "true").option("inferSchema", "true")[0m
+[0m[[0m[31merror[0m] [0m[0m                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
