@@ -1,7 +1,19 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:15:9: df is already defined as value df[0m
-[0m[[0m[31merror[0m] [0m[0m    val df = readCsv(spark, "data/transactions_data.csv", 10)[0m
-[0m[[0m[31merror[0m] [0m[0m        ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:14:52: value option is not a member of org.apache.spark.sql.DataFrame[0m
-[0m[[0m[31merror[0m] [0m[0m    val df = spark.read.csv("data/cards_data.csv").option("header", "true").option("inferSchema", "true")[0m
-[0m[[0m[31merror[0m] [0m[0m                                                   ^[0m
-[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:41:22: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
+[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m      .csv(path).take(limit)[0m
+[0m[[0m[31merror[0m] [0m[0m                     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:49:23: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
+[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m      .json(path).take(limit)[0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:57:23: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
+[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
+[0m[[0m[31merror[0m] [0m[0m      .json(path).take(limit)[0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0mthree errors found[0m

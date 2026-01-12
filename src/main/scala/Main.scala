@@ -11,72 +11,48 @@ object Main {
 
     import spark.implicits._
 
-    // Charger les 3 fichiers CSV avec schéma inféré
-    println("=" * 60)
-    println("TRANSACTIONS DATA (CSV)")
-    println("=" * 60)
-    val dfTransactions = readCsv(spark, "data/transactions_data.csv")
-    dfTransactions.printSchema()
-    dfTransactions.show(10, truncate = false)
+    val df = readCsv(spark, "data/transactions_data.csv")
 
-    println("=" * 60)
-    println("CARDS DATA (CSV)")
-    println("=" * 60)
-    val dfCards = readCsv(spark, "data/cards_data.csv")
-    dfCards.printSchema()
-    dfCards.show(10, truncate = false)
+    val df2 = readCsv(spark, "data/cards_data.csv")
 
-    println("=" * 60)
-    println("USERS DATA (CSV)")
-    println("=" * 60)
-    val dfUsers = readCsv(spark, "data/users_data.csv")
-    dfUsers.printSchema()
-    dfUsers.show(10, truncate = false)
+    val df3 = readCsv(spark, "data/users_data.csv")
 
-    // Charger les 2 fichiers JSON
-    println("=" * 60)
-    println("MCC CODES (JSON)")
-    println("=" * 60)
-    val dfMccCodes = readJsonMultiLine(spark, "data/mcc_codes.json")
-    dfMccCodes.printSchema()
-    dfMccCodes.show(10, truncate = false)
+    val df4 = readJsonMultiLine(spark, "data/mcc_codes.json")
 
-    println("=" * 60)
-    println("TRAIN FRAUD LABELS (JSON)")
-    println("=" * 60)
-    val dfFraudLabels = readJsonLines(spark, "data/train_fraud_labels.json")
-    dfFraudLabels.printSchema()
-    dfFraudLabels.show(10, truncate = false)
+    // val df5 = readJsonLines(spark, "data/train_fraud_labels.json")
 
-    spark.stop()
+    // df5.show()
+
+
+    // spark.stop()
   }
 
-  def readCsv(spark: SparkSession, path: String, limit: Int = 10): DataFrame = {
-    return spark.read
+  def readCsv(spark: SparkSession, path: String): DataFrame = {
+    spark.read
       .option("header", "true")
       .option("inferSchema", "true")
-      .csv(path).limit(limit)
+      .csv(path)
   }
 
-  def readJsonLines(spark: SparkSession, path: String, limit: Int = 10): DataFrame = {
-    return spark.read
+  def readJsonLines(spark: SparkSession, path: String): DataFrame = {
+    spark.read
       .option("multiline", "false")
       .option("inferSchema", "true")
       .option("mode", "DROPMALFORMED")
-      .json(path).limit(limit)
+      .json(path)
   }
 
-  def readJsonMultiLine(spark: SparkSession, path: String, limit: Int = 10): DataFrame = {
-    return spark.read
+  def readJsonMultiLine(spark: SparkSession, path: String): DataFrame = {
+    spark.read
       .option("multiline", "true") 
       .option("inferSchema", "true")
       .option("mode", "DROPMALFORMED")
-      .json(path).limit(limit)
+      .json(path)
   }
 
   // Méthode générique pour compatibilité (défaut: multi-ligne)
-  def readJson(spark: SparkSession, path: String, limit: Int = 10): DataFrame = {
-    return readJsonMultiLine(spark, path, limit)
+  def readJson(spark: SparkSession, path: String): DataFrame = {
+    readJsonMultiLine(spark, path)
   }
 
 }
