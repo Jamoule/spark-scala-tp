@@ -63,7 +63,7 @@ object Main {
 
     // 2. Analyse de volumétrie
     // RÉPONSE Q2: Les commerçants génèrent le plus de lignes (74 831 uniques)
-    // Ratio: ~10 923 transactions/client, ~3 268 tx/carte, ~178 tx/commerçant
+    // Ratio: 10 923 transactions/client, 3 268 tx/carte, 178 tx/commerçant
     // Interprétation: Chaque client possède plusieurs cartes, chaque carte fait plusieurs achats chez différents commerçants
     println("\n" + "="*80)
     println("="*80)
@@ -345,10 +345,4 @@ object Main {
       .option("mode", "DROPMALFORMED")
       .json(path)
   }
-
-  // Méthode générique pour compatibilité (défaut: multi-ligne)
-  def readJson(spark: SparkSession, path: String): DataFrame = {
-    readJsonMultiLine(spark, path)
-  }
-
 }
