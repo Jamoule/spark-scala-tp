@@ -2,6 +2,53 @@
 
 Projet d'analyse de données de transactions bancaires avec Apache Spark et Scala. Le programme effectue une analyse complète incluant la qualité des données, l'analyse temporelle, et la détection de comportements suspects.
 
+
+## Synthèse de l'analyse
+
+### Patterns principaux observés
+
+1. **Distribution temporelle cohérente** : Les transactions suivent un cycle journalier classique avec pic entre 11h-12h (déjeuner) et creux la nuit (1h-5h). Aucune anomalie temporelle majeure détectée.
+
+2. **Montants majoritairement faibles** : Moyenne de 43$ avec médiane probablement plus basse. Les montants >1000$ sont rares et représentent des outliers (achats importants ou potentielles fraudes).
+
+3. **Concentration des volumes** : Les supermarchés, stations-service et restaurants dominent en volume. Les catégories à montant élevé (croisières, métallurgie) ont un faible volume mais un risque unitaire plus élevé.
+
+4. **Faible taux d'erreurs global** : Seulement 1.6% des transactions présentent des erreurs, mais certaines cartes atteignent 15% de ratio d'erreurs (comportement anormal).
+
+5. **Multi-localisation fréquente** : La majorité des cartes sont utilisées dans plus de 3 villes sur la période analysée (2010-2019), ce qui est normal sur 10 ans.
+
+### Indicateurs utiles pour un futur modèle
+
+| Indicateur | Description | Seuil suggéré |
+|------------|-------------|---------------|
+| `nb_transactions_jour` | Nombre de transactions par carte/jour | > 10 = suspect |
+| `montant_total_jour` | Somme des montants par carte/jour | > 1000$ = suspect |
+| `nb_villes_distinctes` | Nombre de villes différentes par carte (sur période courte) | > 3/jour = suspect |
+| `ratio_erreur_pct` | Pourcentage de transactions avec erreur | > 10% = suspect |
+| `montant_moyen_categorie` | Écart par rapport au montant moyen de la catégorie MCC | > 3 écarts-types |
+| `heure_transaction` | Transactions nocturnes (1h-5h) | À pondérer |
+| `categorie_risque` | Catégories sensibles (Money Transfer, Cruise Lines) | Flag binaire |
+
+### Limites des données
+
+1. **Données monétaires en String** : Les montants contiennent le symbole "$" et nécessitent un nettoyage. Risque d'erreurs de parsing.
+
+2. **Valeurs manquantes significatives** :
+   - `merchant_state` : 11.75% de nulls
+   - `zip` : 12.42% de nulls
+   - Impact sur l'analyse géographique
+
+3. **Code postal en Double** : Perte des zéros initiaux (ex: "01234" devient 1234.0). Problème pour l'analyse par région.
+
+4. **Structure MCC inversée** : Le fichier JSON a les codes en colonnes au lieu de lignes, nécessitant une transformation.
+
+5. **Période longue (2010-2019)** : Les seuils de détection doivent être adaptés (ex: multi-villes normal sur 10 ans, anormal sur 1 jour, très dependant de beaucoups de facteurs).
+
+6. **Déséquilibre probable des labels** : Les fraudes représentent généralement <1% des transactions, nécessitant des techniques de rééquilibrage pour l'entraînement.
+
+7. **Absence de contexte client** : Pas de jointure exploitée avec `users_data.csv` et `cards_data.csv` pour enrichir le profil de risque.
+
+
 ## Prérequis
 
 ### Java Development Kit (JDK 17)
