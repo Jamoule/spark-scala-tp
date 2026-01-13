@@ -27,8 +27,6 @@ object Main {
     //   - users: yearly_income/total_debt/per_capita_income (String avec "$")
     //   - mcc_codes: structure inversée (codes en colonnes au lieu de lignes)
     println("\n" + "="*80)
-    println("QUESTION 1 : CHARGEMENT DES DONNÉES")
-    println("Questions : Combien de colonnes par fichier ? Quels types de données semblent incorrects ou suspects ?")
     println("="*80)
 
     // Chargement des 3 CSV
