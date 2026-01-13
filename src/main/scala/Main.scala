@@ -14,29 +14,58 @@ object Main {
     import spark.implicits._
 
     // 1. Chargement des données
-    // RÉPONSE Q1: 12 colonnes dans transactions_data.csv
+    // RÉPONSE Q1 - Nombre de colonnes par fichier:
+    //   - transactions_data.csv: 12 colonnes
+    //   - cards_data.csv: 9 colonnes
+    //   - users_data.csv: 11 colonnes
+    //   - mcc_codes.json: ~300 colonnes (1 colonne par code MCC)
+    //   - train_fraud_labels.json: 2 colonnes (id, is_fraud)
+    //
     // Types suspects:
-    //   - amount: String au lieu de Double (contient "$" ex: "$77.00")
-    //   - zip: Double au lieu de String (code postal devrait être String pour conserver les 0)
+    //   - transactions: amount (String avec "$"), zip (Double au lieu de String)
+    //   - cards: credit_limit (String avec "$"), acct_open_date (String au lieu de Date)
+    //   - users: yearly_income/total_debt/per_capita_income (String avec "$")
+    //   - mcc_codes: structure inversée (codes en colonnes au lieu de lignes)
     println("\n" + "="*80)
+    println("QUESTION 1 : CHARGEMENT DES DONNÉES")
+    println("Questions : Combien de colonnes par fichier ? Quels types de données semblent incorrects ou suspects ?")
     println("="*80)
+
+    // Chargement des 3 CSV
     val df = readCsv(spark, "data/transactions_data.csv")
-    df.printSchema()
-
     val df2 = readCsv(spark, "data/cards_data.csv")
-
     val df3 = readCsv(spark, "data/users_data.csv")
 
+    // Chargement des 2 JSON
     val df4 = readJsonMultiLine(spark, "data/mcc_codes.json")
-
     val df5 = readJsonLines(spark, "data/train_fraud_labels.json")
+
+    // Affichage schéma et 10 premières lignes pour chaque fichier
+    println("\n--- transactions_data.csv (" + df.columns.length + " colonnes) ---")
+    df.printSchema()
+    df.show(10, truncate = false)
+
+    println("\n--- cards_data.csv (" + df2.columns.length + " colonnes) ---")
+    df2.printSchema()
+    df2.show(10, truncate = false)
+
+    println("\n--- users_data.csv (" + df3.columns.length + " colonnes) ---")
+    df3.printSchema()
+    df3.show(10, truncate = false)
+
+    println("\n--- mcc_codes.json (" + df4.columns.length + " colonnes) ---")
+    df4.printSchema()
+    df4.show(10, truncate = false)
+
+    println("\n--- train_fraud_labels.json (" + df5.columns.length + " colonnes) ---")
+    df5.printSchema()
+    df5.show(10, truncate = false)
 
     // 2. Analyse de volumétrie
     // RÉPONSE Q2: Les commerçants génèrent le plus de lignes (74 831 uniques)
     // Ratio: ~10 923 transactions/client, ~3 268 tx/carte, ~178 tx/commerçant
     // Interprétation: Chaque client possède plusieurs cartes, chaque carte fait plusieurs achats chez différents commerçants
     println("\n" + "="*80)
-    println("QUESTION 2 : ANALYSE DE VOLUMÉTRIE")
     println("="*80)
     println("Nombre de transactions: " + df.count())
     println("Nombre de clients uniques: " + df.select("client_id").distinct().count())
@@ -50,8 +79,6 @@ object Main {
     // - Transactions sans MCC: 0 (toutes ont un code MCC peut etre inexacte je reviendrai dessus)
     // - Transactions avec erreurs: 211 393 (1.59%)
     println("\n" + "="*80)
-    println("QUESTION 3 : QUALITÉ DES DONNÉES")
-    println("Identifier les colonnes avec valeurs nulles, transactions avec montant ≤ 0, sans MCC et avec erreurs")
     println("="*80)
     val nullCounts = df.columns.map { colName =>
       (colName, df.filter(col(colName).isNull).count())
@@ -106,8 +133,6 @@ object Main {
     // La moyenne basse (43$) indique que la majorité des transactions sont de petits montants
     // Les montants >1000$ sont exceptionnels, probablement des achats importants ou fraudes
     println("\n" + "="*80)
-    println("QUESTION 4 : ANALYSE DES MONTANTS")
-    println("Question métier : Les montants élevés sont-ils rares ou fréquents ?")
     println("="*80)
       df.select(
           sum(regexp_replace(col("amount"), "[\\$ ]", "").cast("double")).as("somme_totale"),
@@ -126,8 +151,6 @@ object Main {
     // Par jour: Distribution quasi-uniforme (1.9M/jour) - pas d'anomalie
     // Conclusion: Pas d'heures "anormalement" actives, pattern cohérent avec comportement humain
     println("\n" + "="*80)
-    println("QUESTION 5 : ANALYSE TEMPORELLE")
-    println("Interprétation : Existe-t-il des heures anormalement actives ?")
     println("="*80)
     val dfWithDate = df.withColumn("date_timestamp", to_timestamp(col("date"), "yyyy-MM-dd HH:mm:ss"))
     
@@ -167,8 +190,6 @@ object Main {
     // Catégories courantes (faible risque individuel, haut volume):
     //   - Grocery/Supermarkets, Gas Stations, Restaurants → Transactions quotidiennes normales
     println("\n" + "="*80)
-    println("QUESTION 6 : JOINTURE AVEC LES MCC")
-    println("Question : Certaines catégories sont-elles plus risquées ?")
     println("="*80)
     val mccExploded = df4.columns.map { mccCode =>
       (mccCode, df4.select(col(s"`$mccCode`")).first().getString(0))
@@ -208,8 +229,6 @@ object Main {
     // Les erreurs répétées peuvent indiquer: cartes volées testées, tentatives de fraude, comportement bot
     // À croiser avec: nombre de villes, montants, fréquence pour confirmer la suspicion
     println("\n" + "="*80)
-    println("QUESTION 7 : ANALYSE DES ERREURS")
-    println("Indice : Un client avec beaucoup d'erreurs est-il suspect ?")
     println("="*80)
 
     // 8. Création d'indicateurs
@@ -219,8 +238,6 @@ object Main {
     // 3. Villes distinctes: Max 359 villes (carte 3239) - seuil >3 = suspect
     // 4. Ratio erreurs: Max 14.96% (carte 2220) - ratio élevé = suspect
     println("\n" + "="*80)
-    println("QUESTION 8 : CRÉATION D'INDICATEURS")
-    println("Créer les indicateurs : transactions par carte/jour, montant total, villes distinctes, ratio erreurs")
     println("="*80)
 
     // Préparer les données avec montant nettoyé et date extraite
@@ -268,8 +285,6 @@ object Main {
     // 9. Détection des cartes suspectes
     // Amélioration: Augmenter seuils ou combiner critères (ET au lieu de OU) pour réduire faux positifs
     println("\n" + "="*80)
-    println("QUESTION 9 : DÉTECTION DE COMPORTEMENTS SUSPECTS")
-    println("Identifier les cartes avec comportements suspects (trop de transactions, multi-villes, montants élevés)")
     println("="*80)
 
     // Seuils configurables
