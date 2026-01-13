@@ -17,7 +17,7 @@ object Main {
     val df = readCsv(spark, "data/transactions_data.csv")
     df.printSchema()
 
-    // val df2 = readCsv(spark, "data/cards_data.csv")
+    val df2 = readCsv(spark, "data/cards_data.csv")
 
     // val df3 = readCsv(spark, "data/users_data.csv")
 
@@ -128,37 +128,42 @@ object Main {
 
   //6. Jointure avec les MCC
 
-    val mccExploded = df4.columns.map { mccCode =>
-      (mccCode, df4.select(col(s"`$mccCode`")).first().getString(0))
-    }.toSeq.toDF("mcc_code", "merchant_category")
+    // val mccExploded = df4.columns.map { mccCode =>
+    //   (mccCode, df4.select(col(s"`$mccCode`")).first().getString(0))
+    // }.toSeq.toDF("mcc_code", "merchant_category")
 
-    val jointure = df.join(mccExploded, df.col("mcc").cast("string") === mccExploded.col("mcc_code"), "left")
-      .drop("mcc_code")
+    // val jointure = df.join(mccExploded, df.col("mcc").cast("string") === mccExploded.col("mcc_code"), "left")
+    //   .drop("mcc_code")
 
-    jointure.select("mcc", "merchant_category").show(10)
+    // jointure.select("mcc", "merchant_category").show(10)
 
-    // Top 10 des catégories par volume
-    println("\n=== Top 10 catégories par volume ===")
-    jointure
-      .groupBy("merchant_category")
-      .agg(count("*").as("nombre_transactions"))
-      .orderBy(desc("nombre_transactions"))
-      .limit(10)
-      .show(false)
+    // // Top 10 des catégories par volume
+    // println("\n=== Top 10 catégories par volume ===")
+    // jointure
+    //   .groupBy("merchant_category")
+    //   .agg(count("*").as("nombre_transactions"))
+    //   .orderBy(desc("nombre_transactions"))
+    //   .limit(10)
+    //   .show(false)
 
-    // Montant moyen par catégorie
-    println("\n=== Montant moyen par catégorie ===")
-    jointure
-      .withColumn("amount_clean", regexp_replace(col("amount"), "[\\$ ]", "").cast("double"))
-      .groupBy("merchant_category")
-      .agg(
-        round(avg("amount_clean"), 2).as("montant_moyen"),
-        count("*").as("nombre_transactions")
-      )
-      .orderBy(desc("montant_moyen"))
-      .show(false)
+    // // Montant moyen par catégorie
+    // println("\n=== Montant moyen par catégorie ===")
+    // jointure
+    //   .withColumn("amount_clean", regexp_replace(col("amount"), "[\\$ ]", "").cast("double"))
+    //   .groupBy("merchant_category")
+    //   .agg(
+    //     round(avg("amount_clean"), 2).as("montant_moyen"),
+    //     count("*").as("nombre_transactions")
+    //   )
+    //   .orderBy(desc("montant_moyen"))
+    //   .show(false)
 
 
+    // 7. Analyse des erreurs
+
+    // 8. Création d’indicateurs
+    df2.printSchema()
+    df.join(df2, df.col("card_id") === df2.col("id"), "left").select("card_id", "id", "client_id").show(10)
 
     // spark.stop()
   }
