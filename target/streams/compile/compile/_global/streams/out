@@ -1,19 +1,6 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:41:22: type mismatch;[0m
-[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
-[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m      .csv(path).take(limit)[0m
-[0m[[0m[31merror[0m] [0m[0m                     ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:49:23: type mismatch;[0m
-[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
-[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m      .json(path).take(limit)[0m
-[0m[[0m[31merror[0m] [0m[0m                      ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:57:23: type mismatch;[0m
-[0m[[0m[31merror[0m] [0m[0m found   : Array[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m required: org.apache.spark.sql.DataFrame[0m
-[0m[[0m[31merror[0m] [0m[0m    (which expands to)  org.apache.spark.sql.Dataset[org.apache.spark.sql.Row][0m
-[0m[[0m[31merror[0m] [0m[0m      .json(path).take(limit)[0m
-[0m[[0m[31merror[0m] [0m[0m                      ^[0m
-[0m[[0m[31merror[0m] [0m[0mthree errors found[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jipei/projects/scala/src/main/scala/Main.scala:131:92: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : org.apache.spark.sql.Column[0m
+[0m[[0m[31merror[0m] [0m[0m required: String[0m
+[0m[[0m[31merror[0m] [0m[0m    val jointure = df.join(df4, df.col("mcc").cast("string") === df4.col(df.col("mcc").cast("string")), "left").show(10)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                                                           ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
