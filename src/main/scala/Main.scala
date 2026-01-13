@@ -161,9 +161,84 @@ object Main {
 
     // 7. Analyse des erreurs
 
-    // 8. Création d’indicateurs
-    df2.printSchema()
-    df.join(df2, df.col("card_id") === df2.col("id"), "left").select("card_id", "id", "client_id").show(10)
+    // 8. Création d'indicateurs
+
+    // Préparer les données avec montant nettoyé et date extraite
+    val dfClean = df
+      .withColumn("amount_clean", regexp_replace(col("amount"), "[\\$ ]", "").cast("double"))
+      .withColumn("date_jour", to_date(col("date")))
+      .withColumn("has_error", when(col("errors").isNotNull && col("errors") =!= "", 1).otherwise(0))
+
+    // Nombre de transactions par carte et par jour
+    println("\n=== Transactions par carte et par jour ===")
+    val txParCarteJour = dfClean
+      .groupBy("card_id", "date_jour")
+      .agg(count("*").as("nb_transactions"))
+      .orderBy(desc("nb_transactions"))
+    txParCarteJour.show(10)
+
+    // Montant total par carte et par jour
+    println("\n=== Montant total par carte et par jour ===")
+    val montantParCarteJour = dfClean
+      .groupBy("card_id", "date_jour")
+      .agg(round(sum("amount_clean"), 2).as("montant_total"))
+      .orderBy(desc("montant_total"))
+    montantParCarteJour.show(10)
+
+    // Nombre de villes différentes utilisées par carte
+    println("\n=== Nombre de villes différentes par carte ===")
+    val villesParCarte = dfClean
+      .groupBy("card_id")
+      .agg(countDistinct("merchant_city").as("nb_villes_distinctes"))
+      .orderBy(desc("nb_villes_distinctes"))
+    villesParCarte.show(10)
+
+    // Ratio de transactions avec erreur par carte
+    println("\n=== Ratio de transactions avec erreur par carte ===")
+    val ratioErreurs = dfClean
+      .groupBy("card_id")
+      .agg(
+        count("*").as("total_transactions"),
+        sum("has_error").as("transactions_erreur"),
+        round(sum("has_error") / count("*") * 100, 2).as("ratio_erreur_pct")
+      )
+      .orderBy(desc("ratio_erreur_pct"))
+    ratioErreurs.show(10)
+
+    // 9. Détection des cartes suspectes
+    println("\n=== Cartes suspectes ===")
+
+    // Seuils configurables
+    val seuilTxParJour = 10        // Plus de X transactions par jour
+    val seuilVilles = 3            // Plus de 3 villes différentes
+    val seuilMontantJournalier = 1000.0  // Montant total journalier élevé
+
+    // Cartes avec trop de transactions par jour
+    val cartesHighTx = txParCarteJour
+      .filter(col("nb_transactions") > seuilTxParJour)
+      .select("card_id")
+      .distinct()
+
+    // Cartes utilisées dans plus de 3 villes
+    val cartesMultiVilles = villesParCarte
+      .filter(col("nb_villes_distinctes") > seuilVilles)
+      .select("card_id")
+
+    // Cartes avec montant journalier élevé
+    val cartesHighMontant = montantParCarteJour
+      .filter(col("montant_total") > seuilMontantJournalier)
+      .select("card_id")
+      .distinct()
+
+    // Union des cartes suspectes avec les raisons
+    val suspiciousCards = cartesHighTx.withColumn("raison", lit("high_tx_count"))
+      .union(cartesMultiVilles.withColumn("raison", lit("multi_cities")))
+      .union(cartesHighMontant.withColumn("raison", lit("high_daily_amount")))
+      .groupBy("card_id")
+      .agg(collect_set("raison").as("raisons"))
+
+    suspiciousCards.show(20, false)
+    println(s"Nombre de cartes suspectes: ${suspiciousCards.count()}")
 
     // spark.stop()
   }
