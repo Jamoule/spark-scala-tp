@@ -81,9 +81,32 @@ java -version   # JDK 17 requis
 sbt --version   # SBT 1.x requis
 ```
 
-3. **Placer les données**
+3. **Placer les fichiers de données**
 
-Assurez-vous que le dossier `data/` contient les 5 fichiers de données mentionnés ci-dessus.
+Créez le dossier `data/` et placez-y les fichiers suivants :
+```bash
+mkdir -p data
+```
+
+| Fichier | Description |
+|---------|-------------|
+| `transactions_data.csv` | Transactions bancaires (~13M lignes) |
+| `cards_data.csv` | Informations sur les cartes |
+| `users_data.csv` | Informations sur les clients |
+| `mcc_codes.json` | Codes catégories marchands (MCC) |
+| `train_fraud_labels.json` | Labels de fraude pour entraînement |
+
+Structure attendue :
+```
+data/
+├── transactions_data.csv
+├── cards_data.csv
+├── users_data.csv
+├── mcc_codes.json
+└── train_fraud_labels.json
+```
+
+**Important** : Sans ces fichiers, le programme ne pourra pas s'exécuter.
 
 ## Lancement
 
