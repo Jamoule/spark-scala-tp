@@ -14,6 +14,10 @@ object Main {
     import spark.implicits._
 
     // 1. Chargement des données
+    // RÉPONSE Q1: 12 colonnes dans transactions_data.csv
+    // Types suspects:
+    //   - amount: String au lieu de Double (contient "$" ex: "$77.00")
+    //   - zip: Double au lieu de String (code postal devrait être String pour conserver les 0)
     println("\n" + "="*80)
     println("QUESTION 1 : CHARGEMENT DES DONNÉES")
     println("Questions : Combien de colonnes par fichier ? Quels types de données semblent incorrects ou suspects ?")
@@ -29,7 +33,10 @@ object Main {
 
     val df5 = readJsonLines(spark, "data/train_fraud_labels.json")
 
-    // 2. Analyse de volumétrie 
+    // 2. Analyse de volumétrie
+    // RÉPONSE Q2: Les commerçants génèrent le plus de lignes (74 831 uniques)
+    // Ratio: ~10 923 transactions/client, ~3 268 tx/carte, ~178 tx/commerçant
+    // Interprétation: Chaque client possède plusieurs cartes, chaque carte fait plusieurs achats chez différents commerçants
     println("\n" + "="*80)
     println("QUESTION 2 : ANALYSE DE VOLUMÉTRIE")
     println("Interprétation attendue : Qui génère le plus de lignes ?")
@@ -40,6 +47,11 @@ object Main {
     println("Nombre de commercants uniques: " + df.select("merchant_id").distinct().count())
 
     //3. Qualité des données
+    // RÉPONSE Q3:
+    // - Colonnes avec nulls: merchant_state (11.75%), zip (12.42%), errors (98.41% = normal, signifie pas d'erreur)
+    // - Transactions montant ≤ 0: 670 688 (5%) - incluant des montants négatifs (remboursements probablement je pense)
+    // - Transactions sans MCC: 0 (toutes ont un code MCC peut etre inexacte je reviendrai dessus)
+    // - Transactions avec erreurs: 211 393 (1.59%)
     println("\n" + "="*80)
     println("QUESTION 3 : QUALITÉ DES DONNÉES")
     println("Identifier les colonnes avec valeurs nulles, transactions avec montant ≤ 0, sans MCC et avec erreurs")
@@ -89,12 +101,13 @@ object Main {
     println(s"Total de lignes: $totalRows")
     println()
 
-
-
-
     // PARTIE 2 – Analyse des montants & comportements
 
     //4. Analyse des montants
+    // RÉPONSE Q4: Les montants élevés sont RARES
+    // Moyenne: 42.98$ | Min: -500$ | Max: 6820.20$
+    // La moyenne basse (43$) indique que la majorité des transactions sont de petits montants
+    // Les montants >1000$ sont exceptionnels, probablement des achats importants ou fraudes
     println("\n" + "="*80)
     println("QUESTION 4 : ANALYSE DES MONTANTS")
     println("Question métier : Les montants élevés sont-ils rares ou fréquents ?")
@@ -109,6 +122,12 @@ object Main {
 
 
     //5. Analyse temporelle
+    // RÉPONSE Q5: Oui, distribution horaire NON uniforme
+    // Heures creuses: 1h-5h (110-180k tx) - nuit, activité faible = normal
+    // Pic d'activité: 11h-12h (950k tx) - heure du déjeuner
+    // Heures de pointe: 6h-16h (750k-950k tx) - journée de travail
+    // Par jour: Distribution quasi-uniforme (1.9M/jour) - pas d'anomalie
+    // Conclusion: Pas d'heures "anormalement" actives, pattern cohérent avec comportement humain
     println("\n" + "="*80)
     println("QUESTION 5 : ANALYSE TEMPORELLE")
     println("Interprétation : Existe-t-il des heures anormalement actives ?")
@@ -144,6 +163,12 @@ object Main {
       .show()
 
   //6. Jointure avec les MCC
+    // RÉPONSE Q6: Oui, certaines catégories sont potentiellement plus risquées
+    // Catégories à haut risque (montant moyen élevé + faible volume):
+    //   - Cruise Lines (1551$), Steel/Metal products (750-800$) → Montants élevés = cible de fraude
+    //   - Money Transfer (589k tx) → Volume élevé + transferts = risque de blanchiment
+    // Catégories courantes (faible risque individuel, haut volume):
+    //   - Grocery/Supermarkets, Gas Stations, Restaurants → Transactions quotidiennes normales
     println("\n" + "="*80)
     println("QUESTION 6 : JOINTURE AVEC LES MCC")
     println("Question : Certaines catégories sont-elles plus risquées ?")
@@ -180,12 +205,22 @@ object Main {
 
 
     // 7. Analyse des erreurs
+    // RÉPONSE Q7: Oui, un client avec beaucoup d'erreurs EST suspect
+    // Sur 13M transactions, seulement 211k (1.6%) ont des erreurs
+    // Un client avec un ratio d'erreurs élevé (>10%) est anormal
+    // Les erreurs répétées peuvent indiquer: cartes volées testées, tentatives de fraude, comportement bot
+    // À croiser avec: nombre de villes, montants, fréquence pour confirmer la suspicion
     println("\n" + "="*80)
     println("QUESTION 7 : ANALYSE DES ERREURS")
     println("Indice : Un client avec beaucoup d'erreurs est-il suspect ?")
     println("="*80)
 
     // 8. Création d'indicateurs
+    // RÉPONSE Q8: 4 indicateurs créés pour détecter les anomalies
+    // 1. Tx/carte/jour: Max 29 tx/jour (carte 2408) - seuil >10 = suspect
+    // 2. Montant total/jour: Max 6820$ (carte 5165) - seuil >1000$ = suspect
+    // 3. Villes distinctes: Max 359 villes (carte 3239) - seuil >3 = suspect
+    // 4. Ratio erreurs: Max 14.96% (carte 2220) - ratio élevé = suspect
     println("\n" + "="*80)
     println("QUESTION 8 : CRÉATION D'INDICATEURS")
     println("Créer les indicateurs : transactions par carte/jour, montant total, villes distinctes, ratio erreurs")
@@ -234,6 +269,7 @@ object Main {
     ratioErreurs.show(10)
 
     // 9. Détection des cartes suspectes
+    // Amélioration: Augmenter seuils ou combiner critères (ET au lieu de OU) pour réduire faux positifs
     println("\n" + "="*80)
     println("QUESTION 9 : DÉTECTION DE COMPORTEMENTS SUSPECTS")
     println("Identifier les cartes avec comportements suspects (trop de transactions, multi-villes, montants élevés)")
