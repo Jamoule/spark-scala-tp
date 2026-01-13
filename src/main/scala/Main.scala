@@ -19,8 +19,6 @@ object Main {
     //   - amount: String au lieu de Double (contient "$" ex: "$77.00")
     //   - zip: Double au lieu de String (code postal devrait être String pour conserver les 0)
     println("\n" + "="*80)
-    println("QUESTION 1 : CHARGEMENT DES DONNÉES")
-    println("Questions : Combien de colonnes par fichier ? Quels types de données semblent incorrects ou suspects ?")
     println("="*80)
     val df = readCsv(spark, "data/transactions_data.csv")
     df.printSchema()
@@ -39,7 +37,6 @@ object Main {
     // Interprétation: Chaque client possède plusieurs cartes, chaque carte fait plusieurs achats chez différents commerçants
     println("\n" + "="*80)
     println("QUESTION 2 : ANALYSE DE VOLUMÉTRIE")
-    println("Interprétation attendue : Qui génère le plus de lignes ?")
     println("="*80)
     println("Nombre de transactions: " + df.count())
     println("Nombre de clients uniques: " + df.select("client_id").distinct().count())
